@@ -36,7 +36,7 @@ mutualFundDashboard-backend/
 ⚙️ Prerequisites
 Before you begin, ensure you have the following installed on your local machine:
 
-Node.js (v14 or higher recommended)
+Node.js (v24 or higher recommended)
 
 npm (comes with Node.js)
 
