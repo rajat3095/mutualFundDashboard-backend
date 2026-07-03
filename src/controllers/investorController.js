@@ -1,31 +1,22 @@
 import { Investor, Transaction } from "../models/index.js";
 import { calculateFinancials } from "../utils/financialCalc.js";
 
-// MOCK current NAV map for demonstration. In a real app, fetch this from a live API.
-const MOCK_CURRENT_NAV = {
-  "Axis Bluechip Fund": 45.2,
-  "SBI Small Cap Fund": 120.5,
-};
-
 export const getAllInvestors = async (req, res) => {
   try {
     const investors = await Investor.find().populate("transactions");
 
     const summary = investors.map((inv) => {
       // Aggregate all transactions across all schemes for total portfolio metrics
-      const metrics = calculateFinancials(
-        inv.transactions,
-        inv.transactions[0]?.currentNav,
-      );
+      const metrics = calculateFinancials(inv.transactions);
       return {
         id: inv._id,
         name: inv.name,
         panNumber: inv.panNumber,
-        folioCount: new Set(inv.transactions.map((t) => t.folioNumber)).size,
-        totalInvestment: metrics.investedAmount,
-        currentValue: metrics.currentValue,
-        absoluteReturn: metrics.absoluteReturn,
-        xirr: metrics.calculatedXirr,
+        folioCount: metrics.schemeDetails.length,
+        totalInvestment: metrics.portfolioSummary.totalInvestedAmount,
+        currentValue: metrics.portfolioSummary.totalCurrentValue,
+        absoluteReturn: metrics.portfolioSummary.totalAbsoluteReturn,
+        xirr: metrics.portfolioSummary.totalXirr,
       };
     });
 
@@ -38,9 +29,52 @@ export const getAllInvestors = async (req, res) => {
 export const portfolioSummary = async (req, res) => {
   try {
     const { investorId } = req.params;
-    const investor =
-      await Investor.findById(investorId).populate("transactions");
-    res.json(investor);
+    let investor = await Investor.findById(investorId).populate("transactions");
+
+    let metrics = calculateFinancials(investor.transactions);
+
+    let investorData = {
+      name: investor.name,
+      panNumber: investor.panNumber,
+      transactions: investor.transactions,
+      transactionMetrics: {
+        folioCount: metrics.schemeDetails.length,
+        schemeCount: metrics.schemeDetails.length,
+        totalInvestment: metrics.portfolioSummary.totalInvestedAmount,
+        currentMarketValue: metrics.portfolioSummary.totalCurrentValue,
+        totalGainLoss: metrics.portfolioSummary.totalGainLoss,
+        absoluteReturn: metrics.portfolioSummary.totalAbsoluteReturn,
+        xirr: metrics.portfolioSummary.totalXirr,
+      },
+    };
+
+    res.json(investorData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getSchemeWiseSummary = async (req, res) => {
+  try {
+    const { investorId } = req.params;
+    let investor = await Investor.findById(investorId).populate("transactions");
+
+    let metrics = calculateFinancials(investor.transactions);
+
+    let schemeWiseData = metrics.schemeDetails.map((scheme) => ({
+      schemeName: scheme.scheme,
+      folioNumber: scheme.folio,
+      unitsHeld: scheme.unitsHeld,
+      avgPurchaseNav: scheme.avgPurchaseNav,
+      currentNav: scheme.currentNav,
+      investedAmount: scheme.investedAmount,
+      currentValue: scheme.currentValue,
+      gainLoss: scheme.gainLoss,
+      returnPercent: scheme.absoluteReturn,
+      xirr: scheme.calculatedXirr,
+    }));
+
+    res.json(schemeWiseData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
