@@ -10,12 +10,8 @@ const MOCK_CURRENT_NAV = {
 export const getAllInvestors = async (req, res) => {
   try {
     const investors = await Investor.find().populate("transactions");
-    console.log("Fetched investors:", investors);
 
     const summary = investors.map((inv) => {
-      console.log(
-        `Calculating metrics for investor: ${inv.transactions[0]?.currentNav}`,
-      );
       // Aggregate all transactions across all schemes for total portfolio metrics
       const metrics = calculateFinancials(
         inv.transactions,
