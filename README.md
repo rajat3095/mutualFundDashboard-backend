@@ -18,7 +18,7 @@ A robust backend service built with Node.js and JavaScript to power the Mutual F
 
 - **Runtime:** Node.js
 - **Language:** JavaScript
-- **Framework:** Express.js _(Assuming Express is used based on standard Node.js API structures)_
+- **Framework:** Express.js
 - **Package Manager:** npm
 
 ## 📂 Project Structure
@@ -40,7 +40,7 @@ Node.js (v24 or higher recommended)
 
 npm (comes with Node.js)
 
-A Database (e.g., MongoDB, PostgreSQL, or MySQL) installed and running, depending on your configuration.
+A Database (MongoDB) installed and running, depending on your configuration.
 
 💻 Installation & Setup
 Clone the repository:
